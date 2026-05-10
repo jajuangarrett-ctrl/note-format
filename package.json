@@ -1,0 +1,23 @@
+{
+  "name": "note-format",
+  "version": "0.1.0",
+  "description": "Quick voice/text/share-sheet capture of transcripts. On save, GPT-4o reformats them into H1/H2/H3 sections with bullets and a Summary, then writes to AI Team/Formatted_Notes.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "test": "vitest run"
+  },
+  "keywords": ["obsidian-plugin", "obsidian", "notes", "transcript", "format"],
+  "author": "Franklin Garrett",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "builtin-modules": "3.3.0",
+    "esbuild": "0.20.2",
+    "obsidian": "latest",
+    "tslib": "2.6.2",
+    "typescript": "5.4.5",
+    "vitest": "^1.6.0"
+  }
+}
