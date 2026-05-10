@@ -1,7 +1,7 @@
 {
   "id": "note-format",
   "name": "Note Format",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "minAppVersion": "1.4.0",
   "description": "Quick voice/text/share-sheet capture of transcripts. On save, GPT-4o reformats them into H1/H2/H3 sections with bullets and a Summary, then writes to AI Team/Formatted_Notes.",
   "author": "Franklin Garrett",
