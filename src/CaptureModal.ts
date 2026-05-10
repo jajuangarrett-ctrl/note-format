@@ -33,7 +33,7 @@ export class CaptureModal extends Modal {
 
     new Setting(contentEl)
       .setName("Transcript")
-      .setDesc("Paste a transcript, tap Record to dictate, or arrive here from the iOS share sheet (text/PDF). On Save, GPT-4o reformats the content into H1/H2/H3 sections with bullets and a Summary, then writes the result to AI Team/Formatted_Notes. Requires OpenAI API key.")
+      .setDesc("Paste a transcript, tap Record to dictate, or arrive here from the iOS share sheet (text/PDF). On Save, the format model reformats the content into an analytical Markdown note (overview, H3 sections, optional tables, Conclusion, Keywords) and writes it to AI Team/Formatted_Notes. Requires OpenAI API key.")
       .addTextArea((t) => {
         this.textArea = t.inputEl;
         t.inputEl.rows = 10;
@@ -136,7 +136,10 @@ export class CaptureModal extends Modal {
         finalText = await formatTranscript(
           raw,
           this.plugin.settings.openaiApiKey,
-          { acronyms: this.plugin.settings.customAcronyms }
+          {
+            acronyms: this.plugin.settings.customAcronyms,
+            model: this.plugin.settings.formatModel,
+          }
         );
       } catch (e) {
         new Notice(`Formatting failed, saving raw text: ${e instanceof Error ? e.message : String(e)}`);

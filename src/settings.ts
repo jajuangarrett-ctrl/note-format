@@ -1,11 +1,14 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import type NoteFormatPlugin from "../main";
 
+export type FormatModel = "gpt-4o-mini" | "gpt-4o";
+
 export interface NoteFormatSettings {
   openaiApiKey: string;
   inboxFolderPath: string;
   showAnotherAfterSave: boolean;
   customAcronyms: string;
+  formatModel: FormatModel;
 }
 
 export const DEFAULT_SETTINGS: NoteFormatSettings = {
@@ -13,6 +16,7 @@ export const DEFAULT_SETTINGS: NoteFormatSettings = {
   inboxFolderPath: "AI Team/Formatted_Notes",
   showAnotherAfterSave: false,
   customAcronyms: "CalWORKs, VPSS, FJG",
+  formatModel: "gpt-4o-mini",
 };
 
 export class NoteFormatSettingTab extends PluginSettingTab {
@@ -56,7 +60,7 @@ export class NoteFormatSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("OpenAI API key")
-      .setDesc("Used by Whisper for voice transcription AND by GPT-4o to reformat the transcript on save. Required for both. Stored locally in plugin data.")
+      .setDesc("Used by Whisper for voice transcription AND by the format model to reformat the transcript on save. Required for both. Stored locally in plugin data.")
       .addText((t) => {
         t.inputEl.type = "password";
         t
@@ -67,6 +71,20 @@ export class NoteFormatSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           });
       });
+
+    new Setting(containerEl)
+      .setName("Format model")
+      .setDesc("Model used to reformat transcripts on save. gpt-4o-mini handles long transcripts under the standard 30k TPM limit and is much cheaper; gpt-4o gives slightly nicer output for shorter inputs but will 429 on long transcripts.")
+      .addDropdown((d) =>
+        d
+          .addOption("gpt-4o-mini", "gpt-4o-mini (default, handles long inputs)")
+          .addOption("gpt-4o", "gpt-4o (higher quality, 429s on long inputs)")
+          .setValue(this.plugin.settings.formatModel)
+          .onChange(async (v) => {
+            this.plugin.settings.formatModel = (v === "gpt-4o" ? "gpt-4o" : "gpt-4o-mini");
+            await this.plugin.saveSettings();
+          })
+      );
 
     new Setting(containerEl)
       .setName("Custom acronyms")

@@ -101,6 +101,7 @@ export async function transcribeWhisper(audio: Blob, apiKey: string): Promise<st
 
 export interface FormatContext {
   acronyms: string;
+  model: string;
 }
 
 export async function formatTranscript(
@@ -122,7 +123,7 @@ export async function formatTranscript(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-4o",
+      model: ctx.model || "gpt-4o-mini",
       temperature: 0.3,
       messages: [
         { role: "system", content: system },
