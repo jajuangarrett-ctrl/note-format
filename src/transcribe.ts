@@ -1,4 +1,4 @@
-import { requestUrl } from "obsidian";
+﻿import { requestUrl } from "obsidian";
 
 export interface VoiceRecorder {
   stop: () => Promise<Blob>;
@@ -151,13 +151,13 @@ function buildFormatSystemPrompt(ctx: FormatContext): string {
     "",
     "Output format (Markdown, in this exact order, no other text):",
     "",
-    "1. OPENING TITLE — a single line: \"### Summary of [Topic]\". Always H3 (`### `), NEVER H1 or H2. The [Topic] is a 5-15 word description of the transcript subject.",
+    "1. OPENING TITLE â€” a single line: \"### Summary of [Topic]\". Always H3 (`### `), NEVER H1 or H2. The [Topic] is a 5-15 word description of the transcript subject.",
     "",
-    "2. OVERVIEW PARAGRAPH — a blank line, then 1-3 sentences of prose introducing what the transcript covers. Use **bold** for key terms or names introduced. This is prose, not bullets.",
+    "2. OVERVIEW PARAGRAPH â€” a blank line, then 1-3 sentences of prose introducing what the transcript covers. Use **bold** for key terms or names introduced. This is prose, not bullets.",
     "",
-    "3. SEPARATOR — a blank line, then `---` on its own line, then a blank line.",
+    "3. SEPARATOR â€” a blank line, then `---` on its own line, then a blank line.",
     "",
-    "4. BODY SECTIONS — one or more sections, each in this pattern:",
+    "4. BODY SECTIONS â€” one or more sections, each in this pattern:",
     "   - Heading: `### [Descriptive Section Title]` (always H3, sentence case).",
     "   - Content (use whichever fits best for the material):",
     "     - Bulleted lists with `- ` (one idea per bullet, sub-bullets allowed for nested detail). Use `**Bold:**` at the start of a bullet to label a key concept being defined or a recommendation.",
@@ -165,23 +165,23 @@ function buildFormatSystemPrompt(ctx: FormatContext): string {
     "     - Brief prose paragraphs only when bullets and tables would feel forced.",
     "   - End each section with `---` on its own line (blank lines before and after).",
     "",
-    "5. CLOSING SECTIONS — after the body sections, ALWAYS include the following in this exact order:",
+    "5. CLOSING SECTIONS â€” after the body sections, ALWAYS include the following in this exact order:",
     "",
-    "   a. `### Summary Table of Key Terms` — INCLUDE ONLY IF the transcript introduces specialized terms, products, acronyms, or concepts worth defining. Use a Markdown pipe table with two columns: \"Term\" and \"Definition / Purpose\". Skip this section entirely if there are no terms worth defining. Follow with `---`.",
+    "   a. `### Summary Table of Key Terms` â€” INCLUDE ONLY IF the transcript introduces specialized terms, products, acronyms, or concepts worth defining. Use a Markdown pipe table with two columns: \"Term\" and \"Definition / Purpose\". Skip this section entirely if there are no terms worth defining. Follow with `---`.",
     "",
-    "   b. `### Conclusion` — ALWAYS. 1-3 short prose paragraphs synthesizing the most important takeaways. Use **bold** to highlight the single most important conclusion. Do NOT bullet this section.  Follow with `---`.",
+    "   b. `### Conclusion` â€” ALWAYS. 1-3 short prose paragraphs synthesizing the most important takeaways. Use **bold** to highlight the single most important conclusion. Do NOT bullet this section.  Follow with `---`.",
     "",
-    "   c. `### Keywords` — ALWAYS. A single bullet line with 8-20 comma-separated keywords/topics from the transcript. Format: `- Keyword 1, Keyword 2, Keyword 3, ...`",
+    "   c. `### Keywords` â€” ALWAYS. A single bullet line with 8-20 comma-separated keywords/topics from the transcript. Format: `- Keyword 1, Keyword 2, Keyword 3, ...`",
     "",
     "Rules:",
     "- Headings are ALWAYS H3 (`### `). Never use `#`, `##`, `####`, or higher.",
     "- Use sentence case for headings (capitalize the first word and proper nouns only).",
     "- Insert `---` horizontal rules between every section, including before and after each closing section (except after `### Keywords`, which ends the note).",
     "- Use **bold** liberally to highlight key terms, names, products, and concepts the first time they appear.",
-    "- Use Markdown pipe tables freely when content is comparative or definitional — they read better than bullets for those shapes.",
+    "- Use Markdown pipe tables freely when content is comparative or definitional â€” they read better than bullets for those shapes.",
     "- Preserve every fact, name, number, date, and decision from the transcript.",
     "- Do not invent content the transcript does not contain.",
-    "- Do not include a preamble, explanation, or wrapping code fence — output only the Markdown note.",
+    "- Do not include a preamble, explanation, or wrapping code fence â€” output only the Markdown note.",
     "- Preserve exact quotes when the speaker emphasized them; otherwise paraphrase tightly.",
     "- If the transcript is short or unstructured, still produce the opening title + overview paragraph + at least one body section + Conclusion + Keywords (skip the Summary Table of Key Terms if there are no terms).",
   ];
@@ -241,303 +241,4 @@ function filenameForBlob(b: Blob): string {
 
 function truncate(s: string, n: number): string {
   return s.length > n ? `${s.slice(0, n)}...` : s;
-}
-
-export interface YouTubeTranscriptResult {
-  text: string;
-  title: string;
-  languageCode: string;
-  isAutoGenerated: boolean;
-}
-
-export function extractYouTubeVideoId(input: string): string | null {
-  const s = (input || "").trim();
-  if (!s) return null;
-  if (/^[A-Za-z0-9_-]{11}$/.test(s)) return s;
-  let url: URL;
-  try {
-    url = new URL(s);
-  } catch {
-    return null;
-  }
-  const host = url.hostname.replace(/^www\.|^m\.|^music\./, "");
-  if (host === "youtu.be") {
-    const id = url.pathname.split("/").filter(Boolean)[0] || "";
-    return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null;
-  }
-  if (host === "youtube.com" || host === "youtube-nocookie.com") {
-    const v = url.searchParams.get("v");
-    if (v && /^[A-Za-z0-9_-]{11}$/.test(v)) return v;
-    const parts = url.pathname.split("/").filter(Boolean);
-    if (parts.length >= 2 && /^(embed|shorts|live|v)$/.test(parts[0])) {
-      return /^[A-Za-z0-9_-]{11}$/.test(parts[1]) ? parts[1] : null;
-    }
-  }
-  return null;
-}
-
-const YT_BROWSER_HEADERS: Record<string, string> = {
-  "User-Agent":
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-  "Accept-Language": "en-US,en;q=0.9",
-};
-
-const YT_ANDROID_HEADERS: Record<string, string> = {
-  "User-Agent": "com.google.android.youtube/19.09.37 (Linux; U; Android 11) gzip",
-  "Content-Type": "application/json",
-  "X-YouTube-Client-Name": "3",
-  "X-YouTube-Client-Version": "19.09.37",
-  "Accept-Language": "en-US,en;q=0.9",
-};
-
-const YT_ANDROID_API_KEY = "AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w";
-
-interface YTCaptionTrack {
-  baseUrl?: string;
-  languageCode?: string;
-  kind?: string;
-  name?: { simpleText?: string; runs?: Array<{ text?: string }> };
-}
-
-export async function fetchYouTubeTranscript(input: string): Promise<YouTubeTranscriptResult> {
-  const videoId = extractYouTubeVideoId(input);
-  if (!videoId) {
-    throw new Error("Could not find a YouTube video ID in that URL.");
-  }
-
-  const attempts: string[] = [];
-  let player: any = null;
-
-  try {
-    player = await fetchPlayerResponseAndroid(videoId);
-  } catch (e) {
-    attempts.push(`android: ${e instanceof Error ? e.message : String(e)}`);
-  }
-
-  if (!hasCaptionTracks(player)) {
-    try {
-      const watchPlayer = await fetchPlayerResponseWatchPage(videoId);
-      if (hasCaptionTracks(watchPlayer)) {
-        player = watchPlayer;
-      } else if (!player) {
-        player = watchPlayer;
-      }
-    } catch (e) {
-      attempts.push(`watch: ${e instanceof Error ? e.message : String(e)}`);
-    }
-  }
-
-  if (!player) {
-    throw new Error(`Could not load player response (${attempts.join("; ") || "no detail"}).`);
-  }
-
-  const playabilityStatus = player?.playabilityStatus?.status;
-  if (playabilityStatus && playabilityStatus !== "OK") {
-    const reason = player?.playabilityStatus?.reason || playabilityStatus;
-    throw new Error(`YouTube refused to play this video: ${reason}.`);
-  }
-
-  const tracks = player?.captions?.playerCaptionsTracklistRenderer?.captionTracks as
-    | YTCaptionTrack[]
-    | undefined;
-  const title = player?.videoDetails?.title || "";
-  if (!tracks || tracks.length === 0) {
-    throw new Error(
-      `No captions available for "${title || videoId}" (no manual subtitles or auto-captions).`
-    );
-  }
-
-  const track = pickCaptionTrack(tracks);
-  if (!track?.baseUrl) {
-    throw new Error("Found caption tracks but no playable URL.");
-  }
-
-  const text = await fetchCaptionText(track.baseUrl);
-  if (!text) {
-    throw new Error(
-      "Caption track came back empty (YouTube may be blocking transcript fetches for this video)."
-    );
-  }
-
-  return {
-    text,
-    title,
-    languageCode: track.languageCode || "",
-    isAutoGenerated: track.kind === "asr",
-  };
-}
-
-function hasCaptionTracks(player: any): boolean {
-  const tracks = player?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-  return Array.isArray(tracks) && tracks.length > 0;
-}
-
-async function fetchPlayerResponseAndroid(videoId: string): Promise<any> {
-  const body = {
-    context: {
-      client: {
-        clientName: "ANDROID",
-        clientVersion: "19.09.37",
-        androidSdkVersion: 30,
-        hl: "en",
-        gl: "US",
-        userAgent: "com.google.android.youtube/19.09.37 (Linux; U; Android 11) gzip",
-      },
-    },
-    videoId,
-    contentCheckOk: true,
-    racyCheckOk: true,
-  };
-  const res = await requestUrl({
-    url: `https://www.youtube.com/youtubei/v1/player?key=${YT_ANDROID_API_KEY}&prettyPrint=false`,
-    method: "POST",
-    headers: YT_ANDROID_HEADERS,
-    body: JSON.stringify(body),
-    throw: false,
-  });
-  if (res.status >= 400) {
-    throw new Error(`InnerTube ${res.status}`);
-  }
-  try {
-    return JSON.parse(res.text);
-  } catch {
-    throw new Error("InnerTube response was not JSON");
-  }
-}
-
-async function fetchPlayerResponseWatchPage(videoId: string): Promise<any> {
-  const res = await requestUrl({
-    url: `https://www.youtube.com/watch?v=${videoId}&hl=en`,
-    method: "GET",
-    headers: YT_BROWSER_HEADERS,
-    throw: false,
-  });
-  if (res.status >= 400) {
-    throw new Error(`watch page ${res.status}`);
-  }
-  const player = extractInitialPlayerResponse(res.text);
-  if (!player) throw new Error("could not parse ytInitialPlayerResponse");
-  return player;
-}
-
-async function fetchCaptionText(baseUrl: string): Promise<string> {
-  const sep = baseUrl.includes("?") ? "&" : "?";
-
-  const json3Res = await requestUrl({
-    url: `${baseUrl}${sep}fmt=json3`,
-    method: "GET",
-    headers: YT_BROWSER_HEADERS,
-    throw: false,
-  });
-  if (json3Res.status < 400) {
-    const json3 = parseCaptionsJson3(json3Res.text);
-    if (json3) return json3;
-  }
-
-  const xmlRes = await requestUrl({
-    url: baseUrl,
-    method: "GET",
-    headers: YT_BROWSER_HEADERS,
-    throw: false,
-  });
-  if (xmlRes.status >= 400) return "";
-  return parseCaptionsXml(xmlRes.text);
-}
-
-function extractInitialPlayerResponse(html: string): any | null {
-  const m = html.match(/ytInitialPlayerResponse\s*=\s*\{/);
-  if (!m || m.index === undefined) return null;
-  const start = m.index + m[0].length - 1;
-  const end = findJsonEnd(html, start);
-  if (end === -1) return null;
-  try {
-    return JSON.parse(html.slice(start, end));
-  } catch {
-    return null;
-  }
-}
-
-function findJsonEnd(s: string, start: number): number {
-  let depth = 0;
-  let inString = false;
-  let escaped = false;
-  for (let i = start; i < s.length; i++) {
-    const c = s[i];
-    if (inString) {
-      if (escaped) {
-        escaped = false;
-        continue;
-      }
-      if (c === "\\") {
-        escaped = true;
-        continue;
-      }
-      if (c === '"') {
-        inString = false;
-        continue;
-      }
-      continue;
-    }
-    if (c === '"') {
-      inString = true;
-    } else if (c === "{") {
-      depth++;
-    } else if (c === "}") {
-      depth--;
-      if (depth === 0) return i + 1;
-    }
-  }
-  return -1;
-}
-
-function pickCaptionTrack(tracks: Array<{ languageCode?: string; kind?: string }>): any {
-  const isEn = (t: { languageCode?: string }) =>
-    (t.languageCode || "").toLowerCase().startsWith("en");
-  return (
-    tracks.find((t) => isEn(t) && t.kind !== "asr") ||
-    tracks.find((t) => isEn(t)) ||
-    tracks.find((t) => t.kind !== "asr") ||
-    tracks[0]
-  );
-}
-
-function parseCaptionsJson3(raw: string): string {
-  try {
-    const obj = JSON.parse(raw) as {
-      events?: Array<{ segs?: Array<{ utf8?: string }> }>;
-    };
-    const parts: string[] = [];
-    for (const ev of obj.events || []) {
-      if (!ev.segs) continue;
-      for (const seg of ev.segs) {
-        if (seg.utf8) parts.push(seg.utf8);
-      }
-    }
-    return parts.join("").replace(/\s+/g, " ").trim();
-  } catch {
-    return "";
-  }
-}
-
-function parseCaptionsXml(raw: string): string {
-  if (!raw) return "";
-  const parts: string[] = [];
-  const re = /<text\b[^>]*>([\s\S]*?)<\/text>/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(raw)) !== null) {
-    parts.push(decodeXmlEntities(m[1]));
-  }
-  return parts.join(" ").replace(/\s+/g, " ").trim();
-}
-
-function decodeXmlEntities(s: string): string {
-  return s
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&#39;/g, "'")
-    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(parseInt(n, 10)))
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, n) => String.fromCodePoint(parseInt(n, 16)));
 }
