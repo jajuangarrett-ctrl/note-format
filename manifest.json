@@ -1,7 +1,7 @@
 {
   "id": "note-format",
   "name": "Note Format",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "minAppVersion": "1.4.0",
   "description": "Quick voice/text/share-sheet capture of transcripts. On save, the format model (gpt-4o-mini by default; gpt-4o optional) reformats them into an analytical Markdown note and writes to AI Team/Formatted_Notes.",
   "author": "Franklin Garrett",

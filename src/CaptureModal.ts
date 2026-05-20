@@ -6,13 +6,17 @@ import {
   transcribeWhisper,
   type VoiceRecorder,
 } from "./transcribe";
+import { fetchTranscriptFromUrl } from "./web";
 import type NoteFormatPlugin from "../main";
 
 export class CaptureModal extends Modal {
   private plugin: NoteFormatPlugin;
   private text: string;
+  private url: string;
 
   private textArea: HTMLTextAreaElement | null = null;
+  private urlInput: HTMLInputElement | null = null;
+  private fetchButton: ButtonComponent | null = null;
   private recordButton: ButtonComponent | null = null;
   private pasteButton: ButtonComponent | null = null;
   private saveButton: ButtonComponent | null = null;
@@ -21,10 +25,11 @@ export class CaptureModal extends Modal {
   private recording = false;
   private busy = false;
 
-  constructor(app: App, plugin: NoteFormatPlugin, initialText = "") {
+  constructor(app: App, plugin: NoteFormatPlugin, initialText = "", initialUrl = "") {
     super(app);
     this.plugin = plugin;
     this.text = initialText;
+    this.url = initialUrl;
   }
 
   async onOpen() {
@@ -33,8 +38,24 @@ export class CaptureModal extends Modal {
     contentEl.createEl("h2", { text: "Format transcript" });
 
     new Setting(contentEl)
+      .setName("Website transcript URL")
+      .setDesc("Paste a Mira public transcript URL, then fetch only the transcript. The page summary is ignored; Save still uses this plugin's AI formatting instructions.")
+      .addText((t) => {
+        this.urlInput = t.inputEl;
+        t.setPlaceholder("https://mira-staging-transcriptpublic.s3...")
+          .setValue(this.url)
+          .onChange((v) => {
+            this.url = v;
+          });
+      })
+      .addButton((b) => {
+        this.fetchButton = b;
+        b.setButtonText("Fetch transcript").onClick(() => this.fetchWebsiteTranscript());
+      });
+
+    new Setting(contentEl)
       .setName("Transcript")
-      .setDesc("Paste a transcript, tap Paste to drop in your clipboard, tap Record to dictate, or arrive here from the iOS share sheet (text/PDF). On Save, the format model reformats the content into an analytical Markdown note (overview, H3 sections, optional tables, Conclusion, Keywords) and writes it to AI Team/Formatted_Notes. Requires OpenAI API key.")
+      .setDesc("Paste a transcript, fetch from a website URL, tap Paste to drop in your clipboard, tap Record to dictate, or arrive here from the iOS share sheet (text/PDF). On Save, the format model reformats the content into an analytical Markdown note (overview, H3 sections, optional tables, Conclusion, Keywords) and writes it to AI Team/Formatted_Notes. Requires OpenAI API key.")
       .addTextArea((t) => {
         this.textArea = t.inputEl;
         t.inputEl.rows = 10;
@@ -68,7 +89,47 @@ export class CaptureModal extends Modal {
         b.setButtonText("Save & format another").onClick(() => this.save(true));
       });
 
+    if (this.url && !this.text) {
+      setTimeout(() => this.fetchWebsiteTranscript(), 0);
+    }
+
     setTimeout(() => this.textArea?.focus(), 0);
+  }
+
+  private async fetchWebsiteTranscript() {
+    if (this.busy || !this.fetchButton) return;
+    const url = this.url.trim();
+    if (!url) {
+      new Notice("Add a website URL first.");
+      return;
+    }
+
+    this.busy = true;
+    this.fetchButton.setDisabled(true);
+    this.fetchButton.setButtonText("Fetching...");
+
+    try {
+      const transcript = await fetchTranscriptFromUrl(url);
+      if (!transcript) {
+        new Notice("No transcript text found at that URL.");
+        return;
+      }
+
+      this.text = transcript;
+      if (this.textArea) {
+        this.textArea.value = this.text;
+        this.textArea.focus();
+      }
+      new Notice("Transcript fetched.");
+    } catch (e) {
+      new Notice(`Website transcript fetch failed: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      this.busy = false;
+      if (this.fetchButton) {
+        this.fetchButton.setDisabled(false);
+        this.fetchButton.setButtonText("Fetch transcript");
+      }
+    }
   }
 
   private async pasteFromClipboard() {
@@ -201,6 +262,7 @@ export class CaptureModal extends Modal {
   private setSaveButtonsDisabled(disabled: boolean) {
     this.saveButton?.setDisabled(disabled);
     this.saveAnotherButton?.setDisabled(disabled);
+    this.fetchButton?.setDisabled(disabled);
   }
 
   onClose() {

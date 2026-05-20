@@ -24,7 +24,8 @@ export default class NoteFormatPlugin extends Plugin {
 
     this.registerObsidianProtocolHandler("note-format", (params) => {
       const text = typeof params.text === "string" ? params.text : "";
-      new CaptureModal(this.app, this, text).open();
+      const url = typeof params.url === "string" ? params.url : "";
+      new CaptureModal(this.app, this, text, url).open();
     });
 
     this.addSettingTab(new NoteFormatSettingTab(this.app, this));
