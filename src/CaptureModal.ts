@@ -55,7 +55,7 @@ export class CaptureModal extends Modal {
 
     new Setting(contentEl)
       .setName("Transcript")
-      .setDesc("Paste a transcript, fetch from a website URL, tap Paste to drop in your clipboard, tap Record to dictate, or arrive here from the iOS share sheet (text/PDF). On Save, the format model reformats the content into an analytical Markdown note (overview, H3 sections, optional tables, Conclusion, Keywords) and writes it to AI Team/Formatted_Notes. Requires OpenAI API key.")
+      .setDesc("Paste a transcript, fetch from a website URL, tap Paste to drop in your clipboard, tap Record to dictate, or arrive here from the iOS share sheet (text/PDF). On Save, the format model reformats the content into detailed Markdown notes with H3 sections, optional tables, checkbox Next steps, Conclusion, and Keywords, then writes it to AI Team/Formatted_Notes. Requires OpenAI API key.")
       .addTextArea((t) => {
         this.textArea = t.inputEl;
         t.inputEl.rows = 10;

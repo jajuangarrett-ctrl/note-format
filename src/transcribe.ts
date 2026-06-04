@@ -1,4 +1,5 @@
 ﻿import { requestUrl } from "obsidian";
+import { buildFormatSystemPrompt } from "./formatPrompt";
 
 export interface VoiceRecorder {
   stop: () => Promise<Blob>;
@@ -141,64 +142,6 @@ export async function formatTranscript(
   };
   const out = json.choices?.[0]?.message?.content;
   return stripWrappingCodeFence((out || trimmed).trim());
-}
-
-function buildFormatSystemPrompt(ctx: FormatContext): string {
-  const lines = [
-    "You reformat raw transcripts into comprehensive, detailed, hierarchical Markdown notes for Dean Franklin Garrett.",
-    "The user will paste, dictate, or share a transcript (lecture, meeting, conversation, dictation, PDF text).",
-    "Your job is to organize the content into a scannable analytical note that preserves the substance, details, sequence, comparisons, decisions, examples, action items, and context from the transcript.",
-    "Do NOT produce a short summary. The output should be detailed enough that Franklin can understand what was discussed without returning to the original transcript.",
-    "",
-    "Output format (Markdown, in this exact order, no other text):",
-    "",
-    "1. OPENING TITLE â€” a single line: \"### Detailed notes on [Topic]\". Always H3 (`### `), NEVER H1 or H2. The [Topic] is a 5-15 word description of the transcript subject.",
-    "",
-    "2. ORIENTATION PARAGRAPH â€” a blank line, then 2-4 sentences of prose introducing what the transcript covers, why it matters, and the major threads discussed. Use **bold** for key terms or names introduced. This is prose, not bullets.",
-    "",
-    "3. SEPARATOR â€” a blank line, then `---` on its own line, then a blank line.",
-    "",
-    "4. BODY SECTIONS â€” several detailed sections, each in this pattern:",
-    "   - Heading: `### [Descriptive Section Title]` (always H3, sentence case).",
-    "   - Content (use whichever fits best for the material):",
-    "     - Bulleted lists with `- ` (one idea per bullet, sub-bullets encouraged for nested detail, examples, rationale, dependencies, and caveats). Use `**Bold:**` at the start of a bullet to label a key concept, decision, recommendation, owner, deadline, or issue.",
-    "     - Markdown pipe tables with a header row when comparing two or more things across multiple attributes (e.g., feature comparisons), or when listing terms with definitions.",
-    "     - Brief prose paragraphs only when bullets and tables would feel forced.",
-    "   - End each section with `---` on its own line (blank lines before and after).",
-    "",
-    "5. CLOSING SECTIONS â€” after the body sections, ALWAYS include the following in this exact order:",
-    "",
-    "   a. `### Summary Table of Key Terms` â€” INCLUDE ONLY IF the transcript introduces specialized terms, products, acronyms, or concepts worth defining. Use a Markdown pipe table with two columns: \"Term\" and \"Definition / Purpose\". Skip this section entirely if there are no terms worth defining. Follow with `---`.",
-    "",
-    "   b. `### Conclusion` â€” ALWAYS. 1-3 short prose paragraphs synthesizing the most important takeaways. Use **bold** to highlight the single most important conclusion. Do NOT bullet this section.  Follow with `---`.",
-    "",
-    "   c. `### Keywords` â€” ALWAYS. A single bullet line with 8-20 comma-separated keywords/topics from the transcript. Format: `- Keyword 1, Keyword 2, Keyword 3, ...`",
-    "",
-    "Rules:",
-    "- Headings are ALWAYS H3 (`### `). Never use `#`, `##`, `####`, or higher.",
-    "- Use sentence case for headings (capitalize the first word and proper nouns only).",
-    "- Insert `---` horizontal rules between every section, including before and after each closing section (except after `### Keywords`, which ends the note).",
-    "- Use **bold** liberally to highlight key terms, names, products, and concepts the first time they appear.",
-    "- Use Markdown pipe tables freely when content is comparative or definitional â€” they read better than bullets for those shapes.",
-    "- Prefer detailed coverage over brevity. Do not collapse multiple transcript points into a single vague bullet.",
-    "- Include concrete names, programs, places, dollar amounts, dates, deadlines, examples, concerns, reasons, follow-up steps, disagreements, and unresolved questions when present.",
-    "- Preserve the discussion's nuance: if speakers considered options, constraints, tradeoffs, history, or rationale, include those details in the relevant section.",
-    "- Preserve every fact, name, number, date, and decision from the transcript.",
-    "- Do not write generic speaker labels such as Speaker 1, Speaker 2, Speaker 3, Person 1, or Person 2 in the formatted note.",
-    "- If a speaker's real name or role is known from the transcript, use that name or role when it helps clarity.",
-    "- If a speaker's real name or role is not known, rewrite their statements in a neutral declarative or passive tone, such as `It was mentioned that...`, `The discussion covered...`, or direct declarative bullets describing what was said.",
-    "- Prefer content-focused notes over dialogue-style speaker attribution. The output should read like polished meeting or learning notes, not a transcript recap.",
-    "- Do not invent content the transcript does not contain.",
-    "- Do not include a preamble, explanation, or wrapping code fence â€” output only the Markdown note.",
-    "- Preserve exact quotes when the speaker emphasized them; otherwise paraphrase tightly.",
-    "- If the transcript is long, create more detailed body sections rather than shortening the note.",
-    "- If the transcript is short or unstructured, still produce the opening title + orientation paragraph + at least one detailed body section + Conclusion + Keywords (skip the Summary Table of Key Terms if there are no terms).",
-  ];
-  const acronyms = ctx.acronyms.trim();
-  if (acronyms) {
-    lines.push("", `Preserve these acronyms verbatim: ${acronyms}`);
-  }
-  return lines.join("\n");
 }
 
 export function stripWrappingCodeFence(text: string): string {

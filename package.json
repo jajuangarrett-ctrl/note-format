@@ -1,7 +1,7 @@
 {
   "name": "note-format",
   "version": "0.5.2",
-  "description": "Quick voice/text/share-sheet capture of transcripts. On save, the format model (gpt-4o-mini by default; gpt-4o optional) reformats them into an analytical Markdown note and writes to AI Team/Formatted_Notes.",
+  "description": "Quick voice/text/share-sheet capture of transcripts. On save, the format model reformats them into detailed Markdown notes with checkbox next steps and writes to AI Team/Formatted_Notes.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
