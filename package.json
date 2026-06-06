@@ -1,7 +1,7 @@
 {
   "name": "note-format",
-  "version": "0.5.2",
-  "description": "Quick voice/text/share-sheet capture of transcripts. On save, the format model reformats them into detailed Markdown notes with checkbox next steps and writes to AI Team/Formatted_Notes.",
+  "version": "0.5.3",
+  "description": "Quick voice/text/share-sheet capture of transcripts. On save, the format model reformats them into operational meeting notes with decisions, open questions, and action items, then writes to AI Team/Formatted_Notes.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
