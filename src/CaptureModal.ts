@@ -1,6 +1,7 @@
 import { App, ButtonComponent, Modal, Notice, Setting } from "obsidian";
 import { saveNote } from "./append";
 import {
+  formatSummaryNotes,
   formatTranscript,
   startRecording,
   transcribeWhisper,
@@ -15,6 +16,7 @@ export class CaptureModal extends Modal {
   private text: string;
   private url: string;
   private fetchSource: WebFetchSource = "transcript";
+  private contentSource: WebFetchSource = "transcript";
 
   private textArea: HTMLTextAreaElement | null = null;
   private urlInput: HTMLInputElement | null = null;
@@ -127,6 +129,7 @@ export class CaptureModal extends Modal {
       }
 
       this.text = fetchedText;
+      this.contentSource = this.fetchSource;
       if (this.textArea) {
         this.textArea.value = this.text;
         this.textArea.focus();
@@ -158,6 +161,7 @@ export class CaptureModal extends Modal {
       return;
     }
     this.text = mergeTranscript(this.text, trimmed);
+    this.contentSource = "transcript";
     if (this.textArea) {
       this.textArea.value = this.text;
       this.textArea.focus();
@@ -197,6 +201,7 @@ export class CaptureModal extends Modal {
       );
 
       this.text = mergeTranscript(this.text, transcript);
+      this.contentSource = "transcript";
       if (this.textArea) {
         this.textArea.value = this.text;
         this.textArea.focus();
@@ -231,7 +236,10 @@ export class CaptureModal extends Modal {
     let finalText = raw;
     if (this.plugin.settings.openaiApiKey) {
       try {
-        finalText = await formatTranscript(
+        const formatter = this.contentSource === "summary"
+          ? formatSummaryNotes
+          : formatTranscript;
+        finalText = await formatter(
           raw,
           this.plugin.settings.openaiApiKey,
           {

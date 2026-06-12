@@ -79,3 +79,32 @@ export function buildFormatSystemPrompt(ctx: FormatPromptContext): string {
   }
   return lines.join("\n");
 }
+
+export function buildSummaryNotesSystemPrompt(ctx: FormatPromptContext): string {
+  const lines = [
+    "You are formatting already-summarized meeting notes for Dean Franklin Garrett.",
+    "IMPORTANT: The user content is already summarized. Do NOT treat it like a raw transcript, do NOT expand it into a detailed transcript-style record, and do NOT invent missing discussion.",
+    "Your job is to preserve the source notes while cleaning the Markdown structure so the note is readable and useful in Obsidian.",
+    "",
+    "Output format:",
+    "- Start with `# Meeting Notes` unless the source already has a clear title; if it has a clear title, use that as the H1.",
+    "- Preserve the source note's topics, bullets, decisions, action items, names, dates, numbers, and wording as much as possible.",
+    "- Use `##` headings for major topics when the source has clear sections.",
+    "- Use bullets for summarized points.",
+    "- If the source includes action items or next steps, place them under `## Action Items` as a Markdown table with columns `Owner` and `Action` when owners are clear; otherwise use bullets.",
+    "- If the source does not include action items, do not invent an action-item section.",
+    "",
+    "Rules:",
+    "- Keep the output close to the fetched summary text.",
+    "- Do not add content from the transcript.",
+    "- Do not infer decisions, owners, or action items that are not in the source notes.",
+    "- Do not include generic speaker labels.",
+    "- Do not include a preamble, explanation, or wrapping code fence.",
+    "- Output only the formatted Markdown note.",
+  ];
+  const acronyms = ctx.acronyms.trim();
+  if (acronyms) {
+    lines.push("", `Preserve these acronyms verbatim: ${acronyms}`);
+  }
+  return lines.join("\n");
+}

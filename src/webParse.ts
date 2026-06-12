@@ -27,7 +27,10 @@ export function extractTranscriptFromHtml(html: string): string {
 }
 
 export function extractSummaryFromHtml(html: string): string {
-  const summarySection = sliceLabeledSection(html, "Summary");
+  const summarySection =
+    sliceLabeledSection(html, "Summary") ||
+    sliceClassNamedSection(html, "summary") ||
+    sliceBeforeTranscriptSection(html);
   const text = htmlToText(summarySection || html);
   return extractSummaryFromText(text);
 }
@@ -47,6 +50,26 @@ function sliceLabeledSection(html: string, label: string): string {
   const tail = html.slice(startMatch.index + startMatch[0].length);
   const endMatch = /<div\s+class=["']section-label["']>|<div\s+class=["']footer["']>|<script\b/i.exec(tail);
   return endMatch && endMatch.index !== undefined ? tail.slice(0, endMatch.index) : tail;
+}
+
+function sliceClassNamedSection(html: string, className: string): string {
+  const escapedClass = className.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const startMatch = new RegExp(
+    `<[^>]+class=["'][^"']*\\b${escapedClass}\\b[^"']*["'][^>]*>`,
+    "i"
+  ).exec(html);
+  if (!startMatch || startMatch.index === undefined) return "";
+
+  const tail = html.slice(startMatch.index);
+  const endMatch = /<div\s+class=["']section-label["']>\s*Transcript\s*<\/div>|<h[1-6][^>]*>\s*Transcript\s*<\/h[1-6]>|<div\s+class=["']footer["']>|<script\b/i.exec(tail);
+  return endMatch && endMatch.index !== undefined ? tail.slice(0, endMatch.index) : tail;
+}
+
+function sliceBeforeTranscriptSection(html: string): string {
+  const transcriptMatch =
+    /<div\s+class=["']section-label["']>\s*Transcript\s*<\/div>|<h[1-6][^>]*>\s*Transcript\s*<\/h[1-6]>/i.exec(html);
+  if (!transcriptMatch || transcriptMatch.index === undefined) return "";
+  return html.slice(0, transcriptMatch.index);
 }
 
 function extractMiraMessages(html: string): string {

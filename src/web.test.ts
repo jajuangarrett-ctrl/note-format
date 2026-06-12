@@ -91,6 +91,38 @@ describe("extractSummaryFromHtml", () => {
 
     expect(extractSummaryFromHtml(html)).toBe("Keep this recap.");
   });
+
+  it("uses top-of-page notes before Transcript when there is no Summary label", () => {
+    const html = `
+      <main>
+        <h1>Meeting recap</h1>
+        <p>Keep this top summary note.</p>
+        <p>Keep this second summary note.</p>
+        <h2>Transcript</h2>
+        <p>[9:00 AM]</p>
+        <p>Speaker 1: Do not keep this transcript line.</p>
+      </main>
+    `;
+
+    expect(extractSummaryFromHtml(html)).toBe(
+      "Meeting recap\n\nKeep this top summary note.\n\nKeep this second summary note."
+    );
+  });
+
+  it("extracts a summary class block before Transcript without requiring a section label", () => {
+    const html = `
+      <div class="summary-content">
+        <h2>Auto notes</h2>
+        <p>Keep this summarized note.</p>
+      </div>
+      <div class="section-label">Transcript</div>
+      <p>Speaker 1: Ignore this transcript.</p>
+    `;
+
+    expect(extractSummaryFromHtml(html)).toBe(
+      "Auto notes\n\nKeep this summarized note."
+    );
+  });
 });
 
 describe("extractWebContentFromHtml", () => {

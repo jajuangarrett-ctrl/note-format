@@ -1,5 +1,8 @@
 ﻿import { requestUrl } from "obsidian";
-import { buildFormatSystemPrompt } from "./formatPrompt";
+import {
+  buildFormatSystemPrompt,
+  buildSummaryNotesSystemPrompt,
+} from "./formatPrompt";
 
 export interface VoiceRecorder {
   stop: () => Promise<Blob>;
@@ -110,11 +113,26 @@ export async function formatTranscript(
   apiKey: string,
   ctx: FormatContext
 ): Promise<string> {
+  return formatWithSystemPrompt(text, apiKey, ctx, buildFormatSystemPrompt(ctx));
+}
+
+export async function formatSummaryNotes(
+  text: string,
+  apiKey: string,
+  ctx: FormatContext
+): Promise<string> {
+  return formatWithSystemPrompt(text, apiKey, ctx, buildSummaryNotesSystemPrompt(ctx));
+}
+
+async function formatWithSystemPrompt(
+  text: string,
+  apiKey: string,
+  ctx: FormatContext,
+  system: string
+): Promise<string> {
   if (!apiKey) return text;
   const trimmed = text.trim();
   if (!trimmed) return trimmed;
-
-  const system = buildFormatSystemPrompt(ctx);
 
   const res = await requestUrl({
     url: "https://api.openai.com/v1/chat/completions",
