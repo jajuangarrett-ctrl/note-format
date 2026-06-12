@@ -4,7 +4,7 @@
 
 The real source code lives here:
 
-`/Users/franklingarrett/Documents/Codex/plugins/note-format/`
+`/Users/franklingarrett/Codex/plugins/note-format/`
 
 GitHub source repo:
 
@@ -51,7 +51,7 @@ The prompt source used for the current contract is documented in the vault at:
 
 ## Stable Change Workflow
 
-1. Edit source in `/Users/franklingarrett/Documents/Codex/plugins/note-format/`.
+1. Edit source in `/Users/franklingarrett/Codex/plugins/note-format/`.
 2. If the output format changes, update `src/formatPrompt.ts` and the prompt-related test in `src/transcribe.test.ts`.
 3. If user-facing wording changes, update `src/CaptureModal.ts` or settings text as needed.
 4. Bump the version in:
@@ -120,4 +120,3 @@ gh release create vX.Y.Z main.js manifest.json styles.css --title "vX.Y.Z" --not
 - Drafted emails must be signed `Franklin`.
 - Finished vault deliverables should be saved inside `/Users/franklingarrett/Documents/FJG Vault/`, committed, and pushed to the FJG Vault `main` branch unless Franklin explicitly says not to push.
 - For this plugin, publish source updates through the GitHub repo and BRAT-compatible releases when shipping device updates.
-

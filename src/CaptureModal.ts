@@ -7,12 +7,14 @@ import {
   type VoiceRecorder,
 } from "./transcribe";
 import { fetchTranscriptFromUrl } from "./web";
+import type { WebFetchSource } from "./webParse";
 import type NoteFormatPlugin from "../main";
 
 export class CaptureModal extends Modal {
   private plugin: NoteFormatPlugin;
   private text: string;
   private url: string;
+  private fetchSource: WebFetchSource = "transcript";
 
   private textArea: HTMLTextAreaElement | null = null;
   private urlInput: HTMLInputElement | null = null;
@@ -39,7 +41,7 @@ export class CaptureModal extends Modal {
 
     new Setting(contentEl)
       .setName("Website transcript URL")
-      .setDesc("Paste a Mira public transcript URL, then fetch only the transcript. The page summary is ignored; Save still uses this plugin's AI formatting instructions.")
+      .setDesc("Paste a Mira public transcript URL, then choose whether to fetch the raw transcript or the page's summarized notes into the text box. Save still uses this plugin's AI formatting instructions.")
       .addText((t) => {
         this.urlInput = t.inputEl;
         t.setPlaceholder("https://mira-staging-transcriptpublic.s3...")
@@ -48,9 +50,18 @@ export class CaptureModal extends Modal {
             this.url = v;
           });
       })
+      .addDropdown((d) => {
+        d.addOption("transcript", "Raw transcript")
+          .addOption("summary", "Summarized notes")
+          .setValue(this.fetchSource)
+          .onChange((v) => {
+            this.fetchSource = v === "summary" ? "summary" : "transcript";
+            this.fetchButton?.setButtonText(this.fetchButtonText());
+          });
+      })
       .addButton((b) => {
         this.fetchButton = b;
-        b.setButtonText("Fetch transcript").onClick(() => this.fetchWebsiteTranscript());
+        b.setButtonText(this.fetchButtonText()).onClick(() => this.fetchWebsiteTranscript());
       });
 
     new Setting(contentEl)
@@ -109,25 +120,25 @@ export class CaptureModal extends Modal {
     this.fetchButton.setButtonText("Fetching...");
 
     try {
-      const transcript = await fetchTranscriptFromUrl(url);
-      if (!transcript) {
-        new Notice("No transcript text found at that URL.");
+      const fetchedText = await fetchTranscriptFromUrl(url, this.fetchSource);
+      if (!fetchedText) {
+        new Notice(`No ${this.fetchSourceLabel()} text found at that URL.`);
         return;
       }
 
-      this.text = transcript;
+      this.text = fetchedText;
       if (this.textArea) {
         this.textArea.value = this.text;
         this.textArea.focus();
       }
-      new Notice("Transcript fetched.");
+      new Notice(`${this.fetchSourceLabel(true)} fetched.`);
     } catch (e) {
-      new Notice(`Website transcript fetch failed: ${e instanceof Error ? e.message : String(e)}`);
+      new Notice(`Website ${this.fetchSourceLabel()} fetch failed: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       this.busy = false;
       if (this.fetchButton) {
         this.fetchButton.setDisabled(false);
-        this.fetchButton.setButtonText("Fetch transcript");
+        this.fetchButton.setButtonText(this.fetchButtonText());
       }
     }
   }
@@ -271,6 +282,15 @@ export class CaptureModal extends Modal {
       this.recorder = null;
     }
     this.contentEl.empty();
+  }
+
+  private fetchButtonText(): string {
+    return this.fetchSource === "summary" ? "Fetch summary" : "Fetch transcript";
+  }
+
+  private fetchSourceLabel(sentenceStart = false): string {
+    const label = this.fetchSource === "summary" ? "summary" : "transcript";
+    return sentenceStart ? label.charAt(0).toUpperCase() + label.slice(1) : label;
   }
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "note-format",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Quick voice/text/share-sheet capture of transcripts. On save, the format model reformats them into operational meeting notes with decisions, open questions, and action items, then writes to AI Team/Formatted_Notes.",
   "main": "main.js",
   "scripts": {

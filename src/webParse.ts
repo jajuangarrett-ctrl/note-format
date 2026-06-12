@@ -9,6 +9,14 @@ export function normalizeWebUrl(url: string): string {
   return parsed.toString();
 }
 
+export type WebFetchSource = "transcript" | "summary";
+
+export function extractWebContentFromHtml(html: string, source: WebFetchSource): string {
+  return source === "summary"
+    ? extractSummaryFromHtml(html)
+    : extractTranscriptFromHtml(html);
+}
+
 export function extractTranscriptFromHtml(html: string): string {
   const transcriptSection = sliceTranscriptSection(html);
   const messages = extractMiraMessages(transcriptSection);
@@ -18,12 +26,26 @@ export function extractTranscriptFromHtml(html: string): string {
   return extractTranscriptFromText(text);
 }
 
+export function extractSummaryFromHtml(html: string): string {
+  const summarySection = sliceLabeledSection(html, "Summary");
+  const text = htmlToText(summarySection || html);
+  return extractSummaryFromText(text);
+}
+
 function sliceTranscriptSection(html: string): string {
-  const startMatch = /<div\s+class=["']section-label["']>\s*Transcript\s*<\/div>/i.exec(html);
+  return sliceLabeledSection(html, "Transcript");
+}
+
+function sliceLabeledSection(html: string, label: string): string {
+  const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const startMatch = new RegExp(
+    `<div\\s+class=["']section-label["']>\\s*${escapedLabel}\\s*<\\/div>`,
+    "i"
+  ).exec(html);
   if (!startMatch || startMatch.index === undefined) return "";
 
   const tail = html.slice(startMatch.index + startMatch[0].length);
-  const endMatch = /<div\s+class=["']footer["']>|<script\b/i.exec(tail);
+  const endMatch = /<div\s+class=["']section-label["']>|<div\s+class=["']footer["']>|<script\b/i.exec(tail);
   return endMatch && endMatch.index !== undefined ? tail.slice(0, endMatch.index) : tail;
 }
 
@@ -49,6 +71,25 @@ function extractTranscriptFromText(text: string): string {
     ? text
     : text.slice(match.index + match[0].length);
   return transcript.replace(/\n{2,}/g, "\n").trim();
+}
+
+function extractSummaryFromText(text: string): string {
+  const summaryMatch = /(?:^|\n)\s*Summary\s*(?:\n|$)/i.exec(text);
+  const transcriptMatch = /(?:^|\n)\s*Transcript\s*(?:\n|$)/i.exec(text);
+
+  if (summaryMatch?.index !== undefined) {
+    const start = summaryMatch.index + summaryMatch[0].length;
+    const end = transcriptMatch?.index !== undefined && transcriptMatch.index > start
+      ? transcriptMatch.index
+      : text.length;
+    return text.slice(start, end).replace(/\n{3,}/g, "\n\n").trim();
+  }
+
+  if (transcriptMatch?.index !== undefined) {
+    return text.slice(0, transcriptMatch.index).replace(/\n{3,}/g, "\n\n").trim();
+  }
+
+  return text.replace(/\n{3,}/g, "\n\n").trim();
 }
 
 function htmlToText(html: string): string {
