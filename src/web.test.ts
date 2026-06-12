@@ -123,6 +123,33 @@ describe("extractSummaryFromHtml", () => {
       "Auto notes\n\nKeep this summarized note."
     );
   });
+
+  it("accepts Summarized Notes as the top section label", () => {
+    const html = `
+      <h2>Summarized Notes</h2>
+      <p>Keep this summarized note.</p>
+      <h2>Transcript</h2>
+      <p>Speaker 1: Ignore this transcript.</p>
+    `;
+
+    expect(extractSummaryFromHtml(html)).toBe("Keep this summarized note.");
+  });
+
+  it("falls through empty summary-looking containers and keeps top notes", () => {
+    const html = `
+      <div class="summary-icon"></div>
+      <main>
+        <h1>Meeting recap</h1>
+        <p>Keep this top note.</p>
+        <h2>Transcript</h2>
+        <p>Speaker 1: Ignore this transcript.</p>
+      </main>
+    `;
+
+    expect(extractSummaryFromHtml(html)).toBe(
+      "Meeting recap\n\nKeep this top note."
+    );
+  });
 });
 
 describe("extractWebContentFromHtml", () => {

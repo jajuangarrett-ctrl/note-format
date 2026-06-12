@@ -223,14 +223,46 @@ export class CaptureModal extends Modal {
       new Notice("Voice capture still running.");
       return;
     }
-    const raw = this.text.trim();
+    let raw = this.text.trim();
+    if (!raw && this.url.trim()) {
+      this.busy = true;
+      this.setSaveButtonsDisabled(true);
+      this.saveButton?.setButtonText(`Fetching ${this.fetchSourceLabel()}...`);
+
+      try {
+        const fetchedText = await fetchTranscriptFromUrl(this.url.trim(), this.fetchSource);
+        if (!fetchedText) {
+          new Notice(`No ${this.fetchSourceLabel()} text found at that URL.`);
+          this.busy = false;
+          this.setSaveButtonsDisabled(false);
+          this.saveButton?.setButtonText("Save");
+          return;
+        }
+
+        this.text = fetchedText;
+        this.contentSource = this.fetchSource;
+        raw = fetchedText.trim();
+        if (this.textArea) {
+          this.textArea.value = this.text;
+        }
+      } catch (e) {
+        new Notice(`Website ${this.fetchSourceLabel()} fetch failed: ${e instanceof Error ? e.message : String(e)}`);
+        this.busy = false;
+        this.setSaveButtonsDisabled(false);
+        this.saveButton?.setButtonText("Save");
+        return;
+      }
+    }
+
     if (!raw) {
       new Notice("Add some text before saving.");
       return;
     }
 
-    this.busy = true;
-    this.setSaveButtonsDisabled(true);
+    if (!this.busy) {
+      this.busy = true;
+      this.setSaveButtonsDisabled(true);
+    }
     this.saveButton?.setButtonText("Formatting...");
 
     let finalText = raw;

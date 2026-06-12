@@ -27,22 +27,44 @@ export function extractTranscriptFromHtml(html: string): string {
 }
 
 export function extractSummaryFromHtml(html: string): string {
-  const summarySection =
-    sliceLabeledSection(html, "Summary") ||
-    sliceClassNamedSection(html, "summary") ||
-    sliceBeforeTranscriptSection(html);
-  const text = htmlToText(summarySection || html);
-  return extractSummaryFromText(text);
+  const candidates = [
+    sliceAnyLabeledSection(html, [
+      "Summary",
+      "Summarized Notes",
+      "Summarized Note",
+      "Summarized",
+      "Notes",
+    ]),
+    sliceClassNamedSection(html, "summary"),
+    sliceBeforeTranscriptSection(html),
+    html,
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    const summary = extractSummaryFromText(htmlToText(candidate));
+    if (summary) return summary;
+  }
+
+  return "";
 }
 
 function sliceTranscriptSection(html: string): string {
   return sliceLabeledSection(html, "Transcript");
 }
 
+function sliceAnyLabeledSection(html: string, labels: string[]): string {
+  for (const label of labels) {
+    const section = sliceLabeledSection(html, label);
+    if (section) return section;
+  }
+  return "";
+}
+
 function sliceLabeledSection(html: string, label: string): string {
   const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const startMatch = new RegExp(
-    `<div\\s+class=["']section-label["']>\\s*${escapedLabel}\\s*<\\/div>`,
+    `<(?:div|section|h[1-6])\\b[^>]*(?:class=["'][^"']*section-label[^"']*["'][^>]*)?>\\s*${escapedLabel}\\s*<\\/(?:div|section|h[1-6])>`,
     "i"
   ).exec(html);
   if (!startMatch || startMatch.index === undefined) return "";
@@ -67,7 +89,7 @@ function sliceClassNamedSection(html: string, className: string): string {
 
 function sliceBeforeTranscriptSection(html: string): string {
   const transcriptMatch =
-    /<div\s+class=["']section-label["']>\s*Transcript\s*<\/div>|<h[1-6][^>]*>\s*Transcript\s*<\/h[1-6]>/i.exec(html);
+    /<[^>]+>\s*Transcript\s*<\/[^>]+>/i.exec(html);
   if (!transcriptMatch || transcriptMatch.index === undefined) return "";
   return html.slice(0, transcriptMatch.index);
 }
@@ -97,7 +119,7 @@ function extractTranscriptFromText(text: string): string {
 }
 
 function extractSummaryFromText(text: string): string {
-  const summaryMatch = /(?:^|\n)\s*Summary\s*(?:\n|$)/i.exec(text);
+  const summaryMatch = /(?:^|\n)\s*(?:Summary|Summarized Notes?|Summarized|Notes)\s*(?:\n|$)/i.exec(text);
   const transcriptMatch = /(?:^|\n)\s*Transcript\s*(?:\n|$)/i.exec(text);
 
   if (summaryMatch?.index !== undefined) {
