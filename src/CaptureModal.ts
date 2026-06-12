@@ -53,8 +53,8 @@ export class CaptureModal extends Modal {
           });
       })
       .addDropdown((d) => {
-        d.addOption("transcript", "Raw transcript")
-          .addOption("summary", "Summarized notes")
+        d.addOption("transcript", "Transcript")
+          .addOption("summary", "Summary")
           .setValue(this.fetchSource)
           .onChange((v) => {
             this.fetchSource = v === "summary" ? "summary" : "transcript";
