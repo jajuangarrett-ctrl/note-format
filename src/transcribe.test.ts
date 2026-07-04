@@ -10,11 +10,11 @@ describe("buildFormatSystemPrompt", () => {
       acronyms: "CalWORKs, VPSS",
     });
 
-    expect(prompt).toContain("IMPORTANT: Do NOT create a summary of the meeting.");
-    expect(prompt).toContain("detailed manual-style notes");
-    expect(prompt).toContain("Retain nearly all substantive informational content");
-    expect(prompt).toContain("Target 90-95% of meaningful details");
-    expect(prompt).toContain("The formatted note may be long");
+    expect(prompt).toContain("Format and organize the provided text");
+    expect(prompt).toContain("do not over-analyze or expand beyond what the text supports");
+    expect(prompt).toContain("Preserve the meaningful details needed to understand and act on the discussion");
+    expect(prompt).toContain("Be complete enough for follow-up, but do not preserve every turn of conversation");
+    expect(prompt).toContain("Do not add analysis, implications, recommendations, or conclusions");
     expect(prompt).toContain("# Meeting Notes");
     expect(prompt).toContain("## [Topic Name]");
     expect(prompt).toContain("### Discussion");
@@ -22,9 +22,9 @@ describe("buildFormatSystemPrompt", () => {
     expect(prompt).toContain("### Open Questions");
     expect(prompt).toContain("## Action Items");
     expect(prompt).toContain("| Owner | Action |");
-    expect(prompt).toContain("Do not merge distinct points into one generic bullet");
-    expect(prompt).toContain("Use sub-bullets to preserve supporting detail");
-    expect(prompt).toContain("Could a manager who never attended this meeting understand");
+    expect(prompt).toContain("If no decisions or open questions are stated for a topic");
+    expect(prompt).toContain("Use sub-bullets sparingly");
+    expect(prompt).toContain("more useful than a summary, less exhaustive than a transcript analysis");
     expect(prompt).toContain("Preserve these acronyms verbatim: CalWORKs, VPSS");
   });
 });
