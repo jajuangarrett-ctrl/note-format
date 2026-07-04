@@ -16,11 +16,11 @@ This repository is the place to edit TypeScript source, plugin metadata, package
 
 Project documentation lives separately in the FJG Vault:
 
-`/Users/franklingarrett/Documents/FJG Vault/Artifacts/Note Format App/`
+`/Users/franklingarrett/FJG Vault/Artifacts/Note Format App/`
 
 The installed Obsidian plugin copy lives in the vault:
 
-`/Users/franklingarrett/Documents/FJG Vault/.obsidian/plugins/note-format/`
+`/Users/franklingarrett/FJG Vault/.obsidian/plugins/note-format/`
 
 Do not treat `.obsidian/plugins/note-format/` as source. It is installed/build output used by Obsidian and vault sync. Only copy built release assets there when intentionally updating the installed local vault copy.
 
@@ -47,7 +47,7 @@ The current formatting contract is operational meeting notes:
 
 The prompt source used for the current contract is documented in the vault at:
 
-`/Users/franklingarrett/Documents/FJG Vault/AI Team/Formatted_Notes/Prompt for Formatting Notes.md`
+`/Users/franklingarrett/FJG Vault/AI Team/Formatted_Notes/Prompt for Formatting Notes.md`
 
 ## Stable Change Workflow
 
@@ -118,5 +118,5 @@ gh release create vX.Y.Z main.js manifest.json styles.css --title "vX.Y.Z" --not
 
 - The user's name is Franklin Garrett.
 - Drafted emails must be signed `Franklin`.
-- Finished vault deliverables should be saved inside `/Users/franklingarrett/Documents/FJG Vault/`, committed, and pushed to the FJG Vault `main` branch unless Franklin explicitly says not to push.
+- Finished vault deliverables should be saved inside `/Users/franklingarrett/FJG Vault/`, committed, and pushed to the FJG Vault `main` branch unless Franklin explicitly says not to push.
 - For this plugin, publish source updates through the GitHub repo and BRAT-compatible releases when shipping device updates.
